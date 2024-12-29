@@ -6,21 +6,9 @@ import { useState } from 'react';
 import { Audio } from 'expo-av';
 const { width } = Dimensions.get('window');
 const soundMap = {
-  sound1: require('../../assets/sounds/si.mp3'),
-  sound2: require('../../assets/sounds/no.mp3'),
-  sound3: require('../../assets/sounds/comer.mp3'),
-  sound4: require('../../assets/sounds/papa.mp3'),
   sound5: require('../../assets/sounds/mama.mp3'),
   sound6: require('../../assets/sounds/saludo.mp3'),
   sound7: require('../../assets/sounds/feliz.mp3'),
-  sound8: require('../../assets/sounds/triste.mp3'),
-  sound9: require('../../assets/sounds/sed.mp3'),
-  sound10: require('../../assets/sounds/bano.mp3'),
-  sound11: require('../../assets/sounds/dolor.mp3'),
-  sound12: require('../../assets/sounds/jugar.mp3'),
-  sound13: require('../../assets/sounds/pintar.mp3'),
-  sound14: require('../../assets/sounds/musica.mp3'),
-  sound15: require('../../assets/sounds/abrazo.mp3'),
 };
 
 export default function TabTwoScreen() {
