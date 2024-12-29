@@ -48,7 +48,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="music"
         options={{
-          title: 'Music Player',
+          title: 'Musica',
           tabBarIcon: ({ color }) => <Ionicons name="musical-notes-sharp" size={24} color="black" />,
         }}
       />
