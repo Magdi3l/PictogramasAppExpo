@@ -1,52 +1,111 @@
-import { Dimensions, Image, SafeAreaView, ScrollView, StatusBar, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  Dimensions,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 
 import { Text, View } from '@/components/Themed';
-import EditScreenInfo from '@/components/EditScreenInfo';
 import { useState } from 'react';
 import { Audio } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
+
 const { width } = Dimensions.get('window');
+
 const soundMap = {
-  sound5: require('../../assets/sounds/mama.mp3'),
-  sound6: require('../../assets/sounds/saludo.mp3'),
-  sound7: require('../../assets/sounds/feliz.mp3'),
+  banda: require('../../assets/sounds/Banda.mp3'),
+  baladas: require('../../assets/sounds/baladas.mp3'),
+  regueton: require('../../assets/sounds/regueton.mp3'),
+};
+
+const imageMap = {
+  banda: require('../../assets/images/banda.png'),
+  baladas: require('../../assets/images/baladas.png'),
+  regueton: require('../../assets/images/regueton.png'),
 };
 
 export default function TabTwoScreen() {
-  const [sound, setSound] = useState<Audio.Sound | null>(null); 
-    const playSound = async (soundFile: keyof typeof soundMap) => {
-      const { sound } = await Audio.Sound.createAsync(
-        soundMap[soundFile] // Usar el mapa para obtener el archivo correspondiente
-      );
-      setSound(sound); // Establecer el sonido en el estado
-      await sound.playAsync(); // Reproducir el sonido
-    };
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false); 
   
+  const playSound = async (soundFile: keyof typeof soundMap) => {
+    if (sound) {
+      await sound.stopAsync();
+      await sound.unloadAsync();
+    }
+    const { sound: newSound } = await Audio.Sound.createAsync(soundMap[soundFile]);
+    setSound(newSound);
+    setIsPlaying(true);
+    await newSound.playAsync();
+  };
+
+  const pauseSound = async () => {
+    if (sound && isPlaying) {
+      await sound.pauseAsync();
+      setIsPlaying(false);
+    }
+  };
+
+  const resumeSound = async () => {
+    if (sound && !isPlaying) {
+      await sound.playAsync();
+      setIsPlaying(true);
+    }
+  };
+
+  const restartSound = async () => {
+    if (sound) {
+      await sound.stopAsync();
+      await sound.setPositionAsync(0);
+      setIsPlaying(true);
+      await sound.playAsync();
+    }
+  };
+
   return (
-     <SafeAreaView style={styles.container}>
-          <StatusBar
-            barStyle="light-content"
-            backgroundColor={styles.header.backgroundColor}
-          />
-          <ScrollView contentInsetAdjustmentBehavior="automatic">
-            <View style={styles.header}>
-              <Text style={styles.title}>Pictogramas</Text>
-            </View>
-            <View style={styles.pictogramsContainer}>
-            <TouchableOpacity onPress={() => playSound('sound5')} style={styles.pictogram}>
-                <Image source={require('../../assets/images/banda.png')} style={styles.pictogramImage} />
-                <Text style={styles.pictogramText}>BANDA 24 DE MAYO</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => playSound('sound6')} style={styles.pictogram}>
-                <Image source={require('../../assets/images/baladas.png')} style={styles.pictogramImage} />
-                <Text style={styles.pictogramText}>BALADAS</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => playSound('sound7')} style={styles.pictogram}>
-                <Image source={require('../../assets/images/regueton.png')} style={styles.pictogramImage} />
-                <Text style={styles.pictogramText}>REGUETON.</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </SafeAreaView>
+    <SafeAreaView style={styles.container}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={styles.header.backgroundColor}
+      />
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
+        <View style={styles.header}>
+        <Ionicons name="musical-notes" size={24} color="#fff" style={styles.icon} />
+          <Text style={styles.title}>Tu Música</Text>
+        </View>
+        <View style={styles.pictogramsContainer}>
+          {Object.keys(soundMap).map((key) => (
+            <TouchableOpacity
+              key={key}
+              onPress={() => playSound(key as keyof typeof soundMap)}
+              style={styles.pictogram}
+            >
+              <Image
+                source={imageMap[key as keyof typeof imageMap]}
+                style={styles.pictogramImage}
+              />
+              <Text style={styles.pictogramText}>{key.toUpperCase()}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {sound && (
+          <View style={styles.controlsContainer}>
+            <TouchableOpacity onPress={pauseSound} style={styles.controlButton}>
+              <Text style={styles.controlButtonText}>Pausa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={resumeSound} style={styles.controlButton}>
+              <Text style={styles.controlButtonText}>Play</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={restartSound} style={styles.controlButton}>
+              <Text style={styles.controlButtonText}>Reiniciar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -56,11 +115,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#4a90e2',
     padding: 20,
-    alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: '#003c71',
+  },
+  icon: {
+    marginRight: 10, // Espaciado entre el ícono y el texto
   },
   title: {
     fontSize: 24,
@@ -68,38 +132,58 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   pictogramsContainer: {
-    flexDirection: 'row', // Asegura que estén en fila
-    justifyContent: 'space-between', // Espacio entre pictogramas
-    flexWrap: 'wrap', // Permite que pasen a otra fila si no hay espacio
-    paddingHorizontal: 10, // Margen horizontal
-    paddingTop: 20, // Espaciado superior
-    gap: 10, // Espaciado uniforme entre elementos
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    paddingHorizontal: 10,
+    paddingTop: 20,
+    gap: 10,
   },
   pictogram: {
-    width: width / 3 - 20, // Ajustar tamaño para 3 columnas
+    width: width / 3 - 20,
     height: width / 3 - 20,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#4a90e2',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', // Fondo blanco para destacar
-    shadowColor: '#000', // Sombra para un diseño más elegante
+    backgroundColor: '#fff',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 3, // Sombra para Android
+    elevation: 3,
   },
   pictogramImage: {
     width: '80%',
     height: '70%',
-    resizeMode: 'contain', // Escala la imagen sin recortarla
+    resizeMode: 'contain',
   },
   pictogramText: {
     marginTop: 5,
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#4a4a4a', // Texto más oscuro para contraste
+    color: '#4a4a4a',
     textAlign: 'center',
+  },
+  controlsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 10,
+  },
+  controlButton: {
+    padding: 10,
+    backgroundColor: '#4a90e2',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  controlButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
