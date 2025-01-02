@@ -42,7 +42,7 @@ export default function TabTwoScreen() {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => playSound('sound7')} style={styles.pictogram}>
                 <Image source={require('../../assets/images/regueton.png')} style={styles.pictogramImage} />
-                <Text style={styles.pictogramText}>REGUETON</Text>
+                <Text style={styles.pictogramText}>REGUETON.</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
