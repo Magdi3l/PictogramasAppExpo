@@ -94,13 +94,11 @@ export default function TabLayout() {
     }
   };
 
-  const handleSavePictogram = async (name: string, imageUri: string, audioUri: string) => {
+  const handleSavePictogram = async (name: string, imageUri: string, audioUri: string, category: string) => {
     try {
       const sanitizedName = name.replace(/[^a-zA-Z0-9_-]/g, '');
       const newImageUri = `${imagesDirectory}${sanitizedName}.jpg`;
       const newAudioUri = `${soundsDirectory}${sanitizedName}.m4a`;
-      console.log(`Guardando imagen en: ${newImageUri}`);
-      console.log(`Guardando sonido en: ${newAudioUri}`);
 
       await FileSystem.copyAsync({ from: imageUri, to: newImageUri });
       await FileSystem.copyAsync({ from: audioUri, to: newAudioUri });

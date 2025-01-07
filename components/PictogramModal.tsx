@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet, Pressable, Image } from 'react-native';
+import { Modal, View, Text, TextInput, Button, StyleSheet, Pressable, Image, Alert } from 'react-native';
+import { FontAwesome, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 
 interface PictogramModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (name: string, imageUri: string, audioUri: string) => void;
+  onSave: (name: string, imageUri: string, audioUri: string, category: string) => void;
   onPickFile: (type: 'image' | 'audio') => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
@@ -25,55 +27,126 @@ const PictogramModal: React.FC<PictogramModalProps> = ({
   imageFileUri,
 }) => {
   const [name, setName] = useState('');
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [category, setCategory] = useState<string>('Acciones');
+
+  const validateFields = () => {
+    if (!name.trim()) {
+      Alert.alert('Error', 'El nombre del pictograma es requerido.');
+      return false;
+    }
+    if (!imageFileUri) {
+      Alert.alert('Error', 'Es necesario seleccionar una imagen.');
+      return false;
+    }
+    if (!audioFileUri) {
+      Alert.alert('Error', 'Es necesario grabar o seleccionar un audio.');
+      return false;
+    }
+    return true;
+  };
+
 
   const handleSave = () => {
-    if (!name || !imageFileUri || !audioFileUri) {
-      return;
-    }
-    onSave(name, imageFileUri, audioFileUri);
+    if (!validateFields()) return;
+    onSave(name, imageFileUri, audioFileUri, category);
     setName('');
+    setCategory('Acciones');
   };
 
   const handleCancel = () => {
     setName('');
+    setCategory('Acciones'); 
     onClose();
+  };
+
+  const playAudio = async () => {
+    if (!audioFileUri) {
+      Alert.alert('Error', 'No hay audio seleccionado para reproducir.');
+      return;
+    }
+    try {
+      const { sound } = await Audio.Sound.createAsync({ uri: audioFileUri });
+      setSound(sound);
+      await sound.playAsync();
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo reproducir el audio.');
+    }
+  };
+
+  const handlePressIn = () => {
+    onStartRecording();
+  };
+
+  const handlePressOut = () => {
+    onStopRecording();
   };
 
   return (
     <Modal animationType="slide" visible={visible} transparent>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Agregar Pictograma</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre del pictograma"
-            value={name}
-            onChangeText={setName}
-          />
-          <View style={styles.previewContainer}>
-            {imageFileUri ? (
-              <Image source={{ uri: imageFileUri }} style={styles.previewImage} />
-            ) : (
-              <Text style={styles.previewPlaceholder}>Sin imagen seleccionada</Text>
-            )}
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Agregar Pictograma</Text>
+        <Text style={styles.titleCategory}>Seleccione la categoria:</Text>
+        <View style={styles.categoryContainer}>
+            {['Acciones', 'Emociones', 'Respuestas Rápidas', 'Personalizados'].map((cat) => (
+              <Pressable
+                key={cat}
+                style={[styles.categoryButton, category === cat && styles.selectedCategory]}
+                onPress={() => setCategory(cat)}
+              >
+                <Text style={styles.categoryButtonText}>{cat}</Text>
+              </Pressable>
+            ))}
           </View>
-          <Button title="Seleccionar imagen" onPress={() => onPickFile('image')} />
-          <View style={styles.audioContainer}>
-            <Text>{audioFileUri ? 'Audio seleccionado' : 'Sin audio seleccionado'}</Text>
-            <Button
-              title={recording ? 'Detener grabación' : 'Grabar audio'}
-              onPress={recording ? onStopRecording : onStartRecording}
+        <TextInput
+          style={styles.input}
+          placeholder="Nombre del pictograma"
+          value={name}
+          onChangeText={setName}
+        />
+        <Text style={styles.titleCategory}>Seleccione la imagen:</Text>
+        <View style={styles.previewContainer}>
+          {imageFileUri ? (
+            <Image source={{ uri: imageFileUri }} style={styles.previewImage} />
+          ) : (
+            <FontAwesome name="image" size={130} color="#007BFF" />
+          )}
+          <Pressable onPress={() => onPickFile('image')} style={styles.iconButton}>
+            <Ionicons name="add-circle-sharp" size={35} color="black" />
+          </Pressable>
+        </View>
+        <View style={styles.audioContainer}>
+          <Text>{audioFileUri ? `${name}` : 'Selecciona o graba un audio'}</Text>
+            <Pressable
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            
+          >
+            <Ionicons
+              name={recording ? 'mic-off' : 'mic-outline'}
+              size={recording ? 50: 30 }
               color={recording ? 'red' : 'blue'}
             />
-            <Button title="Seleccionar audio" onPress={() => onPickFile('audio')} />
-          </View>
-          <View style={styles.buttonContainer}>
-            <Button title="Guardar" onPress={handleSave} />
-            <Button title="Cancelar" onPress={handleCancel} color="red" />
-          </View>
+          </Pressable>
+          <Pressable onPress={() => onPickFile('audio')} >
+            <MaterialIcons name="audiotrack" size={30} color="#007BFF" />
+          </Pressable>
+          <Pressable onPress={playAudio} >
+            <MaterialIcons name="play-arrow" size={30} color="green" />
+          </Pressable>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Pressable onPress={handleSave} style={styles.saveButton}>
+            <Text style={styles.saveButtonText}>Guardar</Text>
+          </Pressable>
+          <Pressable onPress={handleCancel} style={styles.cancelButton}>
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
+          </Pressable>
         </View>
       </View>
-    </Modal>
+    </View>
+  </Modal>
   );
 };
 
@@ -101,6 +174,29 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  titleCategory: {
+    fontSize: 17,
+    fontWeight: 'black',
+    marginBottom: 20,
+  },
+  categoryContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    marginBottom: 15,
+  },
+  categoryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    backgroundColor: '#007BFF',
+  },
+  selectedCategory: {
+    backgroundColor: '#0056b3',
+  },
+  categoryButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -110,8 +206,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   previewContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'center',
+    flexDirection:'row',
+  },
+  iconButton: {
+    margin: 10,
   },
   previewImage: {
     width: 100,
@@ -123,11 +222,33 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   audioContainer: {
-    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 30,
+    width: 100,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+  },
+  saveButton: {
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
+  },
+  saveButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: 'red',
+    padding: 10,
+    borderRadius: 5,
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 

@@ -34,6 +34,7 @@ interface Pictogram {
   name: string;
   image: string;
   sound: string;
+  category: string;
 }
 
 // Componente principal
@@ -41,16 +42,17 @@ const App = () => {
   const [sound, setSound] = useState<Audio.Sound | null>(null); 
   const [userPictograms, setUserPictograms] = useState<Pictogram[]>([]); 
   const [allPictograms, setAllPictograms] = useState<Pictogram[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const searchParams = useSearchParams();
   const refreshPictograms = searchParams.get('refreshPictograms') === 'true';
   const updatePictos = searchParams.get('updatePictos') === 'true';
   const [iconDelete, setIconDelete] = useState(false);
   
 
+  const categories = ["Todos", "Acciones", "Emociones", "Respuestas Rapidas", "Personalizados"];
+
   const playSound = async (soundUri: string) => {
     try {
-      console.log('Reproduciendo sonido desde URI:', soundUri);
-  
       if (soundMap[soundUri]) {
         const { sound } = await Audio.Sound.createAsync(soundMap[soundUri]);
         await sound.playAsync();
@@ -78,21 +80,21 @@ const App = () => {
 
   const loadDefaultPictograms = () => {
     const defaultPictograms = [
-      { name: 'Sí', image: require('../../assets/images/si.jpg'), sound: 'sound1' },
-      { name: 'No', image: require('../../assets/images/no.jpg'), sound: 'sound2' },
-      { name: 'Comer', image: require('../../assets/images/comer.jpg'), sound: 'sound3' },
-      { name: 'Papá', image: require('../../assets/images/papa.jpg'), sound: 'sound4' },
-      { name: 'Mamá', image: require('../../assets/images/mama1.jpg'), sound: 'sound5' },
-      { name: 'Saludar', image: require('../../assets/images/saludar.jpg'), sound: 'sound6' },
-      { name: 'Feliz', image: require('../../assets/images/feliz.png'), sound: 'sound7' },
-      { name: 'Triste', image: require('../../assets/images/triste.png'), sound: 'sound8' },
-      { name: 'Sed', image: require('../../assets/images/sed.png'), sound: 'sound9' },
-      { name: 'Baño', image: require('../../assets/images/bano.png'), sound: 'sound10' },
-      { name: 'Dolor', image: require('../../assets/images/dolor.png'), sound: 'sound11' },
-      { name: 'Jugar', image: require('../../assets/images/jugar.png'), sound: 'sound12' },
-      { name: 'Pintar', image: require('../../assets/images/pintar.png'), sound: 'sound13' },
-      { name: 'Música', image: require('../../assets/images/musica.png'), sound: 'sound14' },
-      { name: 'Abrazo', image: require('../../assets/images/abrazo.png'), sound: 'sound15' },
+      { name: 'Sí', image: require('../../assets/images/si.jpg'), sound: 'sound1', category:'Respuestas Rapidas' },
+      { name: 'No', image: require('../../assets/images/no.jpg'), sound: 'sound2',category:'Respuestas Rapidas' },
+      { name: 'Comer', image: require('../../assets/images/comer.jpg'), sound: 'sound3', category:'Acciones'},
+      { name: 'Papá', image: require('../../assets/images/papa.jpg'), sound: 'sound4', category:'Respuestas Rapidas'},
+      { name: 'Mamá', image: require('../../assets/images/mama1.jpg'), sound: 'sound5', category:'Respuestas Rapidas' },
+      { name: 'Saludar', image: require('../../assets/images/saludar.jpg'), sound: 'sound6', category:'Acciones' },
+      { name: 'Feliz', image: require('../../assets/images/feliz.png'), sound: 'sound7', category:'Emociones' },
+      { name: 'Triste', image: require('../../assets/images/triste.png'), sound: 'sound8',category:'Emociones' },
+      { name: 'Sed', image: require('../../assets/images/sed.png'), sound: 'sound9', category:'Acciones' },
+      { name: 'Baño', image: require('../../assets/images/bano.png'), sound: 'sound10', category:'Acciones' },
+      { name: 'Dolor', image: require('../../assets/images/dolor.png'), sound: 'sound11', category:'Emociones' },
+      { name: 'Jugar', image: require('../../assets/images/jugar.png'), sound: 'sound12', category:'Accion' },
+      { name: 'Pintar', image: require('../../assets/images/pintar.png'), sound: 'sound13', category:'Accion'},
+      { name: 'Música', image: require('../../assets/images/musica.png'), sound: 'sound14',category:'Accion'},
+      { name: 'Abrazo', image: require('../../assets/images/abrazo.png'), sound: 'sound15', category:'Accion'},
     ];
     setAllPictograms(defaultPictograms);
   };
@@ -110,6 +112,7 @@ const App = () => {
               name,
               image: `${imagesDirectory}${image}`,
               sound: `${soundsDirectory}${soundFile}`,
+              category: 'Personalizados',
             };
           }
           return null;
@@ -141,11 +144,9 @@ const App = () => {
 
   useEffect(() => {
     if (updatePictos === true) {
-      console.log("update", updatePictos)
       setIconDelete(true); 
     } else {
       setIconDelete(false);
-      console.log("update", updatePictos)
     }
   }, [updatePictos]);
   
@@ -158,6 +159,10 @@ const App = () => {
     });
   }, [userPictograms]);
   
+
+  const filteredPictograms = selectedCategory === 'Todos' 
+    ? allPictograms 
+    : allPictograms.filter(pictogram => pictogram.category === selectedCategory);
 
   const renderImage = (pictogram: Pictogram) => {
     if (typeof pictogram.image === 'number') {
@@ -198,9 +203,30 @@ const App = () => {
   return (
     <SafeAreaView style={styles.container}>
     <StatusBar barStyle="light-content" backgroundColor="#4a90e2" />
+
+    <ScrollView horizontal contentContainerStyle={styles.categoryContainer} showsHorizontalScrollIndicator={false}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            style={[
+              styles.categoryButton,
+              selectedCategory === category && styles.categoryButtonSelected
+            ]}
+            onPress={() => setSelectedCategory(category)}
+          >
+            <Text style={[
+              styles.categoryButtonText,
+              selectedCategory === category && styles.categoryButtonTextSelected
+            ]}>
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
     <ScrollView contentInsetAdjustmentBehavior="automatic">
       <View style={styles.pictogramsContainer}>
-        {allPictograms.map((pictogram, index) => (
+        {filteredPictograms.map((pictogram, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => playSound(pictogram.sound)}
@@ -241,6 +267,33 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#fff',
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    paddingVertical: 50,
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+    backgroundColor: '#e6e6e6',
+    width: '100%'
+  },
+  categoryButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    marginHorizontal: 5,
+    borderRadius: 20,
+    backgroundColor: '#ccc',
+    bottom: 30,
+    height: 140,
+  },
+  categoryButtonSelected: {
+    backgroundColor: '#4a90e2',
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    color: '#000',
+  },
+  categoryButtonTextSelected: {
     color: '#fff',
   },
   pictogramsContainer: {
