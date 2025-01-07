@@ -65,6 +65,11 @@ export default function TabLayout() {
 
   const handleStartRecording = async () => {
     try {
+      const {status} = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.error('Permisos de microfono no concedidos');
+        return
+      }
       const newRecording = new Audio.Recording();
       await newRecording.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
       await newRecording.startAsync();
@@ -137,31 +142,7 @@ export default function TabLayout() {
     }
   }
 
-  const loadPictograms = async () => {
-    try {
-      const imageFiles = await FileSystem.readDirectoryAsync(imagesDirectory);
-      const soundFiles = await FileSystem.readDirectoryAsync(soundsDirectory);
-
-      const loadedPictograms = imageFiles
-        .map((image) => {
-          const name = image.split('.')[0];
-          const soundFile = soundFiles.find((sound) => sound.startsWith(name));
-          if (soundFile) {
-            return {
-              name,
-              image: `${imagesDirectory}${image}`,
-              sound: `${soundsDirectory}${soundFile}`,
-            };
-          }
-          return null;
-        })
-        .filter((item): item is Pictogram => item !== null);
-
-      setPictograms(loadedPictograms);
-    } catch (error) {
-      console.error('Error loading pictograms:', error);
-    }
-  };
+  
 
   return (
     <>
