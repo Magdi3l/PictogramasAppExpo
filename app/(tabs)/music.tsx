@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   pictogramsContainer: {
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     flexDirection: 'row',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     marginTop: 20,
     gap: 10,
