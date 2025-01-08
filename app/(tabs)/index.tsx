@@ -271,20 +271,19 @@ const styles = StyleSheet.create({
   },
   categoryContainer: {
     flexDirection: 'row',
-    paddingVertical: 50,
     justifyContent: 'center',
-    paddingHorizontal: 5,
-    backgroundColor: '#e6e6e6',
-    width: '100%'
+    alignItems: 'center',
+    marginVertical: 20,
   },
   categoryButton: {
-    paddingVertical: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e0e0e0',
     paddingHorizontal: 15,
-    marginHorizontal: 5,
+    paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#ccc',
-    bottom: 30,
-    height: 140,
+    marginHorizontal: 5,
+    height: 50,
   },
   categoryButtonSelected: {
     backgroundColor: '#4a90e2',
