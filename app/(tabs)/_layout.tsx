@@ -94,7 +94,7 @@ export default function TabLayout() {
     }
   };
 
-  const handleSavePictogram = async (name: string, imageUri: string, audioUri: string, category: string) => {
+  const handleSavePictogram = async (name: string, imageUri: string, audioUri: string) => {
     try {
       const sanitizedName = name.replace(/[^a-zA-Z0-9_-]/g, '');
       const newImageUri = `${imagesDirectory}${sanitizedName}.jpg`;

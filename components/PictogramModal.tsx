@@ -6,7 +6,7 @@ import { Audio } from 'expo-av';
 interface PictogramModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (name: string, imageUri: string, audioUri: string, category: string) => void;
+  onSave: (name: string, imageUri: string, audioUri: string) => void;
   onPickFile: (type: 'image' | 'audio') => void;
   onStartRecording: () => void;
   onStopRecording: () => void;
@@ -28,7 +28,6 @@ const PictogramModal: React.FC<PictogramModalProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [category, setCategory] = useState<string>('Acciones');
 
   const validateFields = () => {
     if (!name.trim()) {
@@ -49,14 +48,12 @@ const PictogramModal: React.FC<PictogramModalProps> = ({
 
   const handleSave = () => {
     if (!validateFields()) return;
-    onSave(name, imageFileUri, audioFileUri, category);
+    onSave(name, imageFileUri, audioFileUri);
     setName('');
-    setCategory('Acciones');
   };
 
   const handleCancel = () => {
     setName('');
-    setCategory('Acciones'); 
     onClose();
   };
 
@@ -87,18 +84,7 @@ const PictogramModal: React.FC<PictogramModalProps> = ({
     <View style={styles.modalContainer}>
       <View style={styles.modalContent}>
         <Text style={styles.modalTitle}>Agregar Pictograma</Text>
-        <Text style={styles.titleCategory}>Seleccione la categoria:</Text>
-        <View style={styles.categoryContainer}>
-            {['Acciones', 'Emociones', 'Respuestas Rápidas', 'Personalizados'].map((cat) => (
-              <Pressable
-                key={cat}
-                style={[styles.categoryButton, category === cat && styles.selectedCategory]}
-                onPress={() => setCategory(cat)}
-              >
-                <Text style={styles.categoryButtonText}>{cat}</Text>
-              </Pressable>
-            ))}
-          </View>
+        
         <TextInput
           style={styles.input}
           placeholder="Nombre del pictograma"
