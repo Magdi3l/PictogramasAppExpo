@@ -6,8 +6,8 @@ import { captureScreen } from 'react-native-view-shot'; // Librería para captur
 
 export default function PaintScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [color, setColor] = useState('#000000'); // Color predeterminado
-  const [paintedImage, setPaintedImage] = useState<string | null>(null); // Imagen pintada
+  const [color, setColor] = useState('#000000');
+  const [paintedImage, setPaintedImage] = useState<string | null>(null); 
   const imageRef = useRef<View>(null); // Ref para capturar la pantalla
 
   const selectImage = () => {
@@ -43,33 +43,31 @@ export default function PaintScreen() {
       <Button title="Seleccionar Image" onPress={selectImage} />
 
       <View style={styles.content}>
-        {/* Mostrar la imagen seleccionada a la izquierda */}
         {imageUri && (
           <View ref={imageRef} style={styles.imageContainer}>
             <Image source={{ uri: imageUri }} style={styles.image} />
           </View>
         )}
 
-        {/* Selector de colores a la derecha */}
         <View style={styles.colorPickerContainer}>
           <WheelPicker
             style={styles.wheelPicker}
-            color={color} // El color actual seleccionado
-            onColorChange={setColor} // Actualizar el color seleccionado
+            color={color}
+            onColorChange={setColor}
           />
-          {/* Mostrar el color actual seleccionado */}
+
           <Text>Color seleccionado: {color}</Text>
         </View>
       </View>
 
-      {/* Botón para guardar la imagen pintada */}
+
       {imageUri && (
         <TouchableOpacity onPress={savePaintedImage} style={styles.saveButton}>
           <Text style={styles.saveButtonText}>Guardar Imagen</Text>
         </TouchableOpacity>
       )}
 
-      {/* Mostrar la imagen pintada guardada */}
+
       {paintedImage && (
         <Image source={{ uri: paintedImage }} style={styles.savedImage} />
       )}
@@ -81,7 +79,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start', // Asegura que los elementos estén alineados arriba
+    justifyContent: 'flex-start',
     padding: 10,
   },
   title: {
@@ -90,7 +88,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   content: {
-    flexDirection: 'row', // Disposición horizontal de la imagen y el selector de colores
+    flexDirection: 'row', 
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
@@ -100,9 +98,9 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: {
-    width: 500, // Aumentar el tamaño de la imagen
+    width: 500,
     height: 500,
-    marginRight: 20, // Espacio entre la imagen y el selector de colores
+    marginRight: 20, 
     borderWidth: 1,
     borderColor: '#ddd',
   },
@@ -125,7 +123,7 @@ const styles = StyleSheet.create({
   },
   savedImage: {
     marginTop: 20,
-    width: 500, // Tamaño de la imagen guardada
+    width: 500,
     height: 500,
   },
 });
