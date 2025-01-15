@@ -272,8 +272,8 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
     marginVertical: 20,
+    
   },
   categoryButton: {
     justifyContent: 'center',
