@@ -1,256 +1,29 @@
-import {
-  Dimensions,
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  TouchableOpacity,
-  ImageSourcePropType,
-  Alert,
-  Modal,
-  View as RNView,
-} from 'react-native';
-import { Text, View } from '@/components/Themed';
-import { useEffect, useState } from 'react';
-import { Audio, AVPlaybackStatus } from 'expo-av';
-import * as DocumentPicker from 'expo-document-picker';
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, Button, FlatList, TouchableOpacity, Alert } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Definir el tipo para el estado de reproducción
-type PlaybackStatus = AVPlaybackStatus & {
-  isLoaded: boolean;
-  isPlaying?: boolean;
-  didJustFinish?: boolean;
-};
-
-const { width } = Dimensions.get('window');
 
 interface Song {
+  name: string;
   uri: string;
-  fileName: string;
-  genre: string;
 }
 
-interface MusicLibrary {
-  [genre: string]: Song[];
-}
+const MAX_GENRES = 5;
 
-interface ImageMap {
-  [key: string]: ImageSourcePropType;
-}
-
-const imageMap: ImageMap = {
-  banda: require('../../assets/images/banda.png'),
-  baladas: require('../../assets/images/baladas.png'),
-  regueton: require('../../assets/images/regueton.png'),
-};
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4a90e2',
-    padding: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: '#003c71',
-  },
-  icon: {
-    marginRight: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  pictogramsContainer: {
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    paddingHorizontal: 10,
-    paddingTop: 20,
-    gap: 10,
-  },
-  pictogram: {
-    width: width / 3 - 20,
-    height: width / 3 - 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#4a90e2',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  pictogramImage: {
-    width: '80%',
-    height: '70%',
-    resizeMode: 'contain',
-  },
-  pictogramText: {
-    marginTop: 5,
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#4a4a4a',
-    textAlign: 'center',
-  },
-  songInfoContainer: {
-    backgroundColor: 'transparent',
-    padding: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  songTitle: {
-    fontSize: 16,
-    color: '#4a4a4a',
-    fontWeight: '500',
-  },
-  genreText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  controlsContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    justifyContent: 'center',
-    marginTop: 20,
-    gap: 20,
-    paddingBottom: 20,
-  },
-  controlButton: {
-    padding: 15,
-    backgroundColor: '#4a90e2',
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  activeControlButton: {
-    backgroundColor: '#2d5f9e',
-  },
-  controlButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  // Estilos del modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    width: '80%',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4a90e2',
-    marginBottom: 5,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
-  },
-  modalButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#4a90e2',
-    padding: 15,
-    borderRadius: 10,
-    width: '100%',
-    marginBottom: 10,
-  },
-  modalSecondaryButton: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#4a90e2',
-  },
-  modalCancelButton: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#ff6b6b',
-  },
-  modalButtonIcon: {
-    marginRight: 10,
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalSecondaryButtonText: {
-    color: '#4a90e2',
-  },
-  modalCancelButtonText: {
-    color: '#ff6b6b',
-  },
-});
-export default function TabTwoScreen(): JSX.Element {
+const MusicPlayer = () => {
+  const [genres, setGenres] = useState<{ [key: string]: Song[] }>({});
+  const [newGenre, setNewGenre] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("");
+  const [isGenreModalVisible, setGenreModalVisible] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
-  const [musicLibrary, setMusicLibrary] = useState<MusicLibrary>({});
-  const [currentPlaylist, setCurrentPlaylist] = useState<Song[]>([]);
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [isShuffleMode, setIsShuffleMode] = useState(false);
-  const [showGenreModal, setShowGenreModal] = useState(false);
-  const [selectedGenre, setSelectedGenre] = useState<string>('');
-  
-  
-  const showGenreOptions = (genre: string) => {
-    setSelectedGenre(genre);
-    setShowGenreModal(true);
-  };
-
-  const handleGenreOption = async (option: 'play' | 'add') => {
-    setShowGenreModal(false);
-    const genreSongs = musicLibrary[selectedGenre] || [];
-
-    if (option === 'add') {
-      await pickAudioFile(selectedGenre);
-    } else if (genreSongs.length > 0) {
-      const playlist = isShuffleMode ? shuffleArray([...genreSongs]) : genreSongs;
-      setCurrentPlaylist(playlist);
-      setCurrentIndex(0);
-      await playSound(playlist[0]);
-    }
-  };
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
 
   useEffect(() => {
-    const initializeApp = async () => {
-      await configureAudio();
-      await loadMusicLibrary();
-    };
-    
-    initializeApp();
-    
+    loadGenres();
     return () => {
       if (sound) {
         sound.unloadAsync();
@@ -258,304 +31,417 @@ export default function TabTwoScreen(): JSX.Element {
     };
   }, []);
 
-  const configureAudio = async () => {
+  const loadGenres = async () => {
     try {
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-        shouldDuckAndroid: true,
-      });
+      const storedGenres = await AsyncStorage.getItem("genres");
+      if (storedGenres) setGenres(JSON.parse(storedGenres));
     } catch (error) {
-      Alert.alert('Error', 'No se pudo configurar el audio');
+      console.error("Error loading genres:", error);
     }
   };
 
-  const loadMusicLibrary = async () => {
+  const saveGenres = async (updatedGenres: { [key: string]: Song[] }) => {
     try {
-      const savedLibrary = await AsyncStorage.getItem('musicLibrary');
-      if (savedLibrary) {
-        setMusicLibrary(JSON.parse(savedLibrary));
-      }
+      await AsyncStorage.setItem("genres", JSON.stringify(updatedGenres));
+      setGenres(updatedGenres);
     } catch (error) {
-      Alert.alert('Error', 'No se pudo cargar la biblioteca de música');
+      console.error("Error saving genres:", error);
     }
   };
 
-  const saveMusicLibrary = async (newLibrary: MusicLibrary) => {
-    try {
-      await AsyncStorage.setItem('musicLibrary', JSON.stringify(newLibrary));
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo guardar la biblioteca de música');
+  const addGenre = () => {
+    if (!newGenre.trim()) {
+      Alert.alert("Error", "El nombre del género no puede estar vacío");
+      return;
     }
+    if (genres[newGenre]) {
+      Alert.alert("Error", "El género ya existe");
+      return;
+    }
+    if (Object.keys(genres).length >= MAX_GENRES) {
+      Alert.alert("Error", `No puedes crear más de ${MAX_GENRES} géneros`);
+      return;
+    }
+    const updatedGenres = { ...genres, [newGenre]: [] };
+    saveGenres(updatedGenres);
+    setNewGenre("");
+    setGenreModalVisible(false);
   };
 
-  const pauseSound = async () => {
-    try {
-      if (sound && isPlaying) {
-        await sound.pauseAsync();
-        setIsPlaying(false);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo pausar la reproducción');
-    }
+  const deleteGenre = (genreName: string) => {
+    Alert.alert(
+      "Confirmar eliminación",
+      `¿Estás seguro de que deseas eliminar el género "${genreName}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            const updatedGenres = { ...genres };
+            delete updatedGenres[genreName];
+            saveGenres(updatedGenres);
+            if (selectedGenre === genreName) {
+              setSelectedGenre("");
+              setCurrentSong(null);
+              if (sound) {
+                sound.unloadAsync();
+              }
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const resumeSound = async () => {
-    try {
-      if (sound && !isPlaying) {
-        await sound.playAsync();
-        setIsPlaying(true);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo reanudar la reproducción');
-    }
+  const deleteSong = (genreName: string, songIndex: number) => {
+    Alert.alert(
+      "Confirmar eliminación",
+      "¿Estás seguro de que deseas eliminar esta canción?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            const updatedSongs = [...genres[genreName]];
+            updatedSongs.splice(songIndex, 1);
+            const updatedGenres = { ...genres, [genreName]: updatedSongs };
+            saveGenres(updatedGenres);
+            if (currentSongIndex === songIndex) {
+              setCurrentSong(null);
+              if (sound) {
+                sound.unloadAsync();
+              }
+            }
+          },
+        },
+      ]
+    );
   };
-
-  const pickAudioFile = async (genre: string) => {
+  
+  const addSongToGenre = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'audio/*',
-        copyToCacheDirectory: true,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        const audioUri = result.assets[0].uri;
-        const fileName = result.assets[0].name;
-        
+      const result = await DocumentPicker.getDocumentAsync({ type: "audio/*" });
+      if (result.assets && result.assets.length > 0 && selectedGenre) {
         const newSong: Song = {
-          uri: audioUri,
-          fileName: fileName || 'Canción sin nombre',
-          genre,
+          name: result.assets[0].name,
+          uri: result.assets[0].uri
         };
-
-        const updatedLibrary = {
-          ...musicLibrary,
-          [genre]: [...(musicLibrary[genre] || []), newSong],
+        const updatedGenres = {
+          ...genres,
+          [selectedGenre]: [...(genres[selectedGenre] || []), newSong],
         };
-
-        setMusicLibrary(updatedLibrary);
-        await saveMusicLibrary(updatedLibrary);
-        
-        // Actualizar la playlist actual si estamos en el mismo género
-        if (currentPlaylist.length > 0 && currentPlaylist[0].genre === genre) {
-          const newPlaylist = updatedLibrary[genre];
-          setCurrentPlaylist(isShuffleMode ? shuffleArray([...newPlaylist]) : newPlaylist);
-        } else {
-          setCurrentPlaylist(isShuffleMode ? shuffleArray([...updatedLibrary[genre]]) : updatedLibrary[genre]);
-          setCurrentIndex(updatedLibrary[genre].length - 1);
-        }
-
-        await playSound(newSong);
-        Alert.alert('Éxito', `Música agregada a ${genre}: ${fileName}`);
+        saveGenres(updatedGenres);
       }
     } catch (error) {
-      Alert.alert('Error', 'No se pudo seleccionar el archivo de música');
+      console.error("Error al seleccionar el archivo:", error);
     }
   };
 
-  const playSound = async (song: Song) => {
+  const playSound = async (song: Song, index: number) => {
     try {
       if (sound) {
-        await sound.stopAsync();
         await sound.unloadAsync();
       }
-      
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: song.uri },
-        { shouldPlay: true },
-        (status: PlaybackStatus) => {
-          if (!status.isLoaded) return;
-          if (status.didJustFinish) {
-            playNextSong();
-          }
-        }
+        { shouldPlay: true }
       );
-      
-      newSound.setOnPlaybackStatusUpdate((status: PlaybackStatus) => {
-        if (status.isLoaded) {
-          setIsPlaying(status.isPlaying || false);
+
+      setSound(newSound);
+      setIsPlaying(true);
+      setCurrentSong(song);
+      setCurrentSongIndex(index);
+
+      newSound.setOnPlaybackStatusUpdate(async (status) => {
+        if (status.isLoaded && !status.isPlaying && status.positionMillis === status.durationMillis) {
+          await playNextSong();
         }
       });
-      
-      setSound(newSound);
-      setCurrentSong(song);
-      setIsPlaying(true);
     } catch (error) {
-      Alert.alert('Error', 'No se pudo reproducir el archivo de audio');
+      console.error("Error reproduciendo el audio:", error);
+    }
+  };
+
+  const togglePlayPause = async () => {
+    if (sound) {
+      try {
+        if (isPlaying) {
+          await sound.pauseAsync();
+        } else {
+          await sound.playAsync();
+        }
+        setIsPlaying(!isPlaying);
+      } catch (error) {
+        console.error("Error toggling play/pause:", error);
+      }
     }
   };
 
   const playNextSong = async () => {
-    if (currentPlaylist.length === 0) return;
-    
-    const nextIndex = (currentIndex + 1) % currentPlaylist.length;
-    setCurrentIndex(nextIndex);
-    await playSound(currentPlaylist[nextIndex]);
+    if (selectedGenre) {
+      const songs = genres[selectedGenre];
+      let nextIndex = (currentSongIndex + 1) % songs.length;
+      await playSound(songs[nextIndex], nextIndex);
+    }
   };
 
   const playPreviousSong = async () => {
-    if (currentPlaylist.length === 0) return;
-    
-    const previousIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
-    setCurrentIndex(previousIndex);
-    await playSound(currentPlaylist[previousIndex]);
-  };
-
-  const toggleShuffle = () => {
-    setIsShuffleMode(!isShuffleMode);
-    if (currentPlaylist.length > 0) {
-      const newPlaylist = isShuffleMode ? 
-        [...musicLibrary[currentPlaylist[0].genre]] : 
-        shuffleArray([...currentPlaylist]);
-      setCurrentPlaylist(newPlaylist);
-      setCurrentIndex(newPlaylist.findIndex(song => song.uri === currentSong?.uri));
+    if (selectedGenre) {
+      const songs = genres[selectedGenre];
+      let prevIndex = currentSongIndex - 1;
+      if (prevIndex < 0) prevIndex = songs.length - 1;
+      await playSound(songs[prevIndex], prevIndex);
     }
   };
 
-  const shuffleArray = <T,>(array: T[]): T[] => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-  };
-
-  const selectGenre = async (genre: string) => {
-    const genreSongs = musicLibrary[genre] || [];
-    if (genreSongs.length === 0) {
-      await pickAudioFile(genre);
-    } else {
-      const playlist = isShuffleMode ? shuffleArray([...genreSongs]) : genreSongs;
-      setCurrentPlaylist(playlist);
-      setCurrentIndex(0);
-      await playSound(playlist[0]);
+  const playRandomSong = async () => {
+    if (selectedGenre) {
+      const songs = genres[selectedGenre];
+      const randomIndex = Math.floor(Math.random() * songs.length);
+      await playSound(songs[randomIndex], randomIndex);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={styles.header.backgroundColor}
-      />
-      <ScrollView 
-        contentInsetAdjustmentBehavior="automatic"
-        style={styles.scrollView}
-      >
-        <View style={styles.header}>
-          <Ionicons name="musical-notes" size={24} color="#fff" style={styles.icon} />
-          <Text style={styles.title}>Tu Música</Text>
-        </View>
-        <View style={styles.pictogramsContainer}>
-          {Object.entries(imageMap).map(([key, image]) => (
-            <TouchableOpacity
-              key={key}
-              onPress={() => showGenreOptions(key)}
-              style={styles.pictogram}
-            >
-              <Image
-                source={image}
-                style={styles.pictogramImage}
-              />
-              <Text style={styles.pictogramText}>
-                {key.toUpperCase()}
-                {musicLibrary[key]?.length > 0 && ` (${musicLibrary[key].length})`}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+    <View style={{ flex: 1, backgroundColor: '#1E1E1E' }}>
+      {/* Header */}
+      <View style={{ 
+        padding: 20, 
+        backgroundColor: '#2D2D2D',
+        borderBottomWidth: 1,
+        borderBottomColor: '#3D3D3D'
+      }}>
+        <Text style={{ 
+          fontSize: 24, 
+          fontWeight: "bold",
+          color: '#FFFFFF',
+          textAlign: 'center'
+        }}>
+          Mi Reproductor de Música
+        </Text>
         
-        {currentSong && (
-          <View style={styles.songInfoContainer}>
-            <Text style={styles.songTitle}>{currentSong.fileName}</Text>
-            <Text style={styles.genreText}>{currentSong.genre.toUpperCase()}</Text>
+        {Object.keys(genres).length < MAX_GENRES && (
+          <TouchableOpacity
+            style={{
+              marginTop: 10,
+              padding: 12,
+              backgroundColor: "#007AFF",
+              borderRadius: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            onPress={() => setGenreModalVisible(true)}
+          >
+            <Ionicons name="add-circle-outline" size={20} color="white" style={{ marginRight: 8 }} />
+            <Text style={{ color: "white", fontSize: 16 }}>Nuevo Género</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Modal para crear género */}
+      {isGenreModalVisible && (
+        <View style={{ 
+          padding: 20,
+          backgroundColor: '#2D2D2D',
+          margin: 10,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: '#3D3D3D'
+        }}>
+          <TextInput
+            placeholder="Nombre del género"
+            placeholderTextColor="#999"
+            value={newGenre}
+            onChangeText={setNewGenre}
+            style={{
+              borderWidth: 1,
+              borderColor: "#3D3D3D",
+              padding: 12,
+              borderRadius: 8,
+              marginBottom: 10,
+              color: 'white',
+              backgroundColor: '#1E1E1E'
+            }}
+          />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                padding: 12,
+                backgroundColor: "#666",
+                borderRadius: 8,
+                marginRight: 8
+              }}
+              onPress={() => setGenreModalVisible(false)}
+            >
+              <Text style={{ color: "white", textAlign: "center" }}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                padding: 12,
+                backgroundColor: "#007AFF",
+                borderRadius: 8
+              }}
+              onPress={addGenre}
+            >
+              <Text style={{ color: "white", textAlign: "center" }}>Guardar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Lista de géneros */}
+      <FlatList
+        style={{ flex: 1 }}
+        data={Object.keys(genres)}
+        keyExtractor={(item) => item}
+        contentContainerStyle={{ padding: 10 }}
+        renderItem={({ item }) => (
+          <View style={{ 
+            marginBottom: 10,
+            backgroundColor: '#2D2D2D',
+            borderRadius: 10,
+            overflow: 'hidden'
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 12,
+              backgroundColor: selectedGenre === item ? '#007AFF' : '#2D2D2D',
+            }}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => setSelectedGenre(item === selectedGenre ? '' : item)}
+              >
+                <Text style={{ fontSize: 18, color: 'white' }}>{item}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => deleteGenre(item)}
+                style={{ padding: 8 }}
+              >
+                <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedGenre === item && (
+              <View style={{ padding: 10 }}>
+                {genres[item].length > 0 ? (
+                  <FlatList
+                    data={genres[item]}
+                    keyExtractor={(song) => song.uri}
+                    renderItem={({ item: song, index }) => (
+                      <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        padding: 8,
+                        backgroundColor: currentSong?.uri === song.uri ? '#3D3D3D' : 'transparent',
+                        borderRadius: 6,
+                        marginVertical: 2
+                      }}>
+                        <TouchableOpacity
+                          style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+                          onPress={() => playSound(song, index)}
+                        >
+                          <Ionicons 
+                            name={currentSong?.uri === song.uri && isPlaying ? "pause-circle" : "play-circle"} 
+                            size={24} 
+                            color={currentSong?.uri === song.uri ? "#007AFF" : "#999"}
+                            style={{ marginRight: 8 }}
+                          />
+                          <Text style={{ 
+                            color: currentSong?.uri === song.uri ? '#FFFFFF' : '#CCCCCC',
+                            flex: 1
+                          }}>
+                            {song.name}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => deleteSong(item, index)}
+                          style={{ padding: 8 }}
+                        >
+                          <Ionicons name="close-circle-outline" size={24} color="#FF3B30" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  />
+                ) : (
+                  <Text style={{ color: '#999', textAlign: 'center', padding: 10 }}>
+                    No hay canciones en este género
+                  </Text>
+                )}
+
+                <TouchableOpacity
+                  style={{
+                    marginTop: 10,
+                    padding: 12,
+                    backgroundColor: "#4A4A4A",
+                    borderRadius: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onPress={() => addSongToGenre()}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color="white" style={{ marginRight: 8 }} />
+                  <Text style={{ color: "white" }}>Agregar Canción</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         )}
-        {sound && (
-          <View style={styles.controlsContainer}>
-            <TouchableOpacity 
-              onPress={playPreviousSong} 
-              style={styles.controlButton}
-            >
-              <Ionicons name="play-skip-back" size={24} color="#fff" />
+      />
+
+      {/* Controles de reproducción */}
+      {currentSong && (
+        <View style={{
+          padding: 20,
+          backgroundColor: '#ffffff',
+          borderTopWidth: 1,
+          borderTopColor: '#3D3D3D'
+        }}>
+          <Text style={{ 
+            color: 'white', 
+            textAlign: 'center',
+            marginBottom: 10,
+            fontSize: 16
+          }}>
+            {currentSong.name}
+          </Text>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center'
+          }}>
+            <TouchableOpacity onPress={playPreviousSong}>
+              <Ionicons name="play-skip-back" size={32} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={isPlaying ? pauseSound : resumeSound} 
-              style={styles.controlButton}
-            >
-              <Ionicons 
-                name={isPlaying ? "pause" : "play"} 
-                size={24} 
-                color="#fff" 
+            
+            <TouchableOpacity onPress={togglePlayPause}>
+              <Ionicons
+                name={isPlaying ? "pause-circle" : "play-circle"}
+                size={48}
+                color="#007AFF"
               />
             </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={playNextSong} 
-              style={styles.controlButton}
-            >
-              <Ionicons name="play-skip-forward" size={24} color="#fff" />
+            
+            <TouchableOpacity onPress={playNextSong}>
+              <Ionicons name="play-skip-forward" size={32} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={toggleShuffle} 
-              style={[
-                styles.controlButton,
-                isShuffleMode && styles.activeControlButton
-              ]}
-            >
-              <Ionicons name="shuffle" size={24} color="#fff" />
+            
+            <TouchableOpacity onPress={playRandomSong}>
+              <Ionicons name="shuffle" size={32} color="white" />
             </TouchableOpacity>
           </View>
-        )}
-      </ScrollView>
-
-      {/* Modal de opciones de género */}
-      <Modal
-        visible={showGenreModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowGenreModal(false)}
-      >
-        <RNView style={styles.modalOverlay}>
-          <RNView style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {selectedGenre.toUpperCase()}
-            </Text>
-            <Text style={styles.modalSubtitle}>
-              {musicLibrary[selectedGenre]?.length || 0} canciones en esta lista
-            </Text>
-            
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => handleGenreOption('add')}
-            >
-              <Ionicons name="add-circle-outline" size={24} color="#fff" style={styles.modalButtonIcon} />
-              <Text style={styles.modalButtonText}>Agregar nueva canción</Text>
-            </TouchableOpacity>
-
-            {musicLibrary[selectedGenre]?.length > 0 && (
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalSecondaryButton]}
-                onPress={() => handleGenreOption('play')}
-              >
-                <Ionicons name="play-circle-outline" size={24} color="#4a90e2" style={styles.modalButtonIcon} />
-                <Text style={[styles.modalButtonText, styles.modalSecondaryButtonText]}>
-                  Reproducir lista actual
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[styles.modalButton, styles.modalCancelButton]}
-              onPress={() => setShowGenreModal(false)}
-            >
-              <Text style={[styles.modalButtonText, styles.modalCancelButtonText]}>
-                Cancelar
-              </Text>
-            </TouchableOpacity>
-          </RNView>
-        </RNView>
-      </Modal>
-    </SafeAreaView>
+        </View>
+      )}
+    </View>
   );
-}
+};
+
+export default MusicPlayer;
