@@ -313,7 +313,7 @@ const MusicPlayer = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: 12,
-              backgroundColor: selectedGenre === item ? '#007AFF' : '#2D2D2D',
+              backgroundColor: selectedGenre === item ? '#007AFF' : '#ccccc',
             }}>
               <TouchableOpacity
                 style={{ flex: 1 }}
@@ -401,7 +401,7 @@ const MusicPlayer = () => {
       {currentSong && (
         <View style={{
           padding: 20,
-          backgroundColor: '#ffffff',
+          backgroundColor: '#2D2D2D',
           borderTopWidth: 1,
           borderTopColor: '#3D3D3D'
         }}>
