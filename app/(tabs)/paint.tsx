@@ -1,76 +1,169 @@
-import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Button, Text, Image, TouchableOpacity } from 'react-native';
-import { launchImageLibrary } from 'react-native-image-picker';
-import WheelPicker from 'react-native-wheel-color-picker';
-import { captureScreen } from 'react-native-view-shot'; // Librería para capturar la pantalla
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, PanResponder } from 'react-native';
+import Canvas from 'react-native-canvas';
 
 export default function PaintScreen() {
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [color, setColor] = useState('#000000');
-  const [paintedImage, setPaintedImage] = useState<string | null>(null); 
-  const imageRef = useRef<View>(null); // Ref para capturar la pantalla
+  const [imageUri, setImageUri] = useState<string | null>(null); // URI de la imagen seleccionada
+  const [color, setColor] = useState('#000000'); // Color del pincel
+  const [brushSize, setBrushSize] = useState(5); // Tamaño del pincel
+  const [isDrawing, setIsDrawing] = useState(false); // Controla si el usuario está dibujando
+  const canvasRef = useRef(null); // Referencia al lienzo
+  const lastPosition = useRef({ x: 0, y: 0 }); // Guarda la última posición del toque
 
-  const selectImage = () => {
-    launchImageLibrary({ mediaType: 'photo', includeBase64: false }, (response) => {
-      if (response.assets && response.assets[0].uri) {
-        setImageUri(response.assets[0].uri); // Asignar la URI de la imagen seleccionada
-      }
-    });
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (e) => {
+        const touch = e.nativeEvent.touches[0];
+        lastPosition.current = { x: touch.pageX, y: touch.pageY };
+        setIsDrawing(true);
+      },
+      onPanResponderMove: (e) => {
+        if (!isDrawing) return;
+
+        const touch = e.nativeEvent.touches[0];
+        const offsetX = touch.pageX;
+        const offsetY = touch.pageY;
+
+        const currentPosition = { x: offsetX, y: offsetY };
+        const canvas = canvasRef.current;
+
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.beginPath();
+          ctx.moveTo(lastPosition.current.x, lastPosition.current.y);
+          ctx.lineTo(currentPosition.x, currentPosition.y);
+          ctx.stroke();
+        }
+
+        lastPosition.current = currentPosition;
+      },
+      onPanResponderRelease: () => {
+        setIsDrawing(false);
+      },
+    })
+  ).current;
+
+  // Lista de imágenes para elegir
+  const images = [
+    require('../../assets/pictures/flores.jpeg'),
+    require('../../assets/pictures/flores.jpeg'),
+    require('../../assets/pictures/flores.jpeg'),
+  ];
+
+  // Función para seleccionar una imagen
+  const selectLocalImage = (image) => {
+    setImageUri(image); // Actualiza el URI de la imagen seleccionada
   };
 
-  // Función para capturar la imagen pintada
-  const savePaintedImage = () => {
-    if (imageRef.current) {
-      captureScreen({
-        format: 'jpg', // Formato de la imagen
-        quality: 0.8, // Calidad de la imagen
-      })
-        .then((uri) => {
-          setPaintedImage(uri); // Guarda la URI de la imagen pintada
-          alert('Imagen guardada con éxito');
-        })
-        .catch((error) => {
-          console.error('Error al capturar la imagen:', error);
-        });
+  // Función para limpiar el dibujo
+  const clearDrawing = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el lienzo
+      if (imageUri) {
+        drawImageOnCanvas(imageUri); // Redibujar la imagen
+      }
     }
   };
+
+  // Manejo del lienzo al cargar
+  const handleCanvas = (canvas) => {
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      canvas.width = 400;
+      canvas.height = 400;
+      ctx.lineWidth = brushSize;
+      ctx.strokeStyle = color;
+    }
+  };
+
+  // Cargar la imagen seleccionada sobre el lienzo
+  const drawImageOnCanvas = (imageUri) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+
+    if (imageUri) {
+      const img = Image.resolveAssetSource(imageUri);
+      const { width, height } = img;
+
+      img.onLoad = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+    }
+  };
+
+  // Actualizar la imagen en el lienzo cada vez que cambia
+  useEffect(() => {
+    if (imageUri) {
+      drawImageOnCanvas(imageUri); // Redibujar la imagen cada vez que cambia
+    }
+  }, [imageUri]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Paint App</Text>
 
-      {/* Botón para seleccionar la imagen */}
-      <Button title="Seleccionar Image" onPress={selectImage} />
+      {/* Lista de imágenes para seleccionar */}
+      <View style={styles.imageList}>
+        {images.map((image, index) => (
+          <TouchableOpacity key={index} onPress={() => selectLocalImage(image)}>
+            <Image source={image} style={styles.thumbnail} />
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <View style={styles.content}>
         {imageUri && (
-          <View ref={imageRef} style={styles.imageContainer}>
-            <Image source={{ uri: imageUri }} style={styles.image} />
+          <View style={styles.imageContainer}>
+            <Image source={imageUri} style={styles.image} />
           </View>
         )}
 
-        <View style={styles.colorPickerContainer}>
-          <WheelPicker
-            style={styles.wheelPicker}
-            color={color}
-            onColorChange={setColor}
+        {/* Lienzo donde el usuario puede pintar */}
+        <View
+          {...panResponder.panHandlers}
+          style={styles.canvasWrapper}
+        >
+          <Canvas
+            ref={canvasRef}
+            style={styles.canvas}
+            onCanvasReady={handleCanvas}
           />
-
-          <Text>Color seleccionado: {color}</Text>
         </View>
       </View>
 
+      {/* Contenedor de colores */}
+      <View style={styles.colorPalette}>
+        {['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'].map((colorValue) => (
+          <TouchableOpacity
+            key={colorValue}
+            style={[styles.colorButton, { backgroundColor: colorValue }]}
+            onPress={() => setColor(colorValue)}
+          />
+        ))}
+      </View>
 
-      {imageUri && (
-        <TouchableOpacity onPress={savePaintedImage} style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Guardar Imagen</Text>
+      {/* Contenedor de tamaño de pincel */}
+      <View style={styles.brushSizeContainer}>
+        <Text style={styles.brushSizeText}>Tamaño del Pincel: {brushSize}</Text>
+        <TouchableOpacity onPress={() => setBrushSize(brushSize + 1)} style={styles.sizeButton}>
+          <Text style={styles.sizeButtonText}>Aumentar tamaño</Text>
         </TouchableOpacity>
-      )}
+        <TouchableOpacity onPress={() => setBrushSize(brushSize - 1)} style={styles.sizeButton}>
+          <Text style={styles.sizeButtonText}>Reducir tamaño</Text>
+        </TouchableOpacity>
+      </View>
 
-
-      {paintedImage && (
-        <Image source={{ uri: paintedImage }} style={styles.savedImage} />
-      )}
+      {/* Contenedor de botones */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={clearDrawing} style={styles.actionButton}>
+          <Text style={styles.actionButtonText}>Limpiar Dibujo</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -78,52 +171,109 @@ export default function PaintScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'flex-end',
     padding: 10,
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
+    width: '100%',
   },
   content: {
-    flexDirection: 'row', 
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    marginTop: 20,
+    position: 'relative',
+    marginRight: 20,
   },
   imageContainer: {
     position: 'relative',
+    marginBottom: 20,
   },
   image: {
-    width: 500,
-    height: 500,
-    marginRight: 20, 
+    width: 400,
+    height: 400,
     borderWidth: 1,
     borderColor: '#ddd',
   },
-  colorPickerContainer: {
-    alignItems: 'center',
+  canvasWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 400,
+    height: 400,
+    zIndex: 1,
   },
-  wheelPicker: {
-    width: 200,
-    height: 200,
+  canvas: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 400,
+    height: 400,
+    zIndex: 2,
   },
-  saveButton: {
-    backgroundColor: '#007BFF',
-    padding: 10,
-    marginTop: 20,
+  imageList: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  thumbnail: {
+    width: 50,
+    height: 50,
+    marginRight: 10,
     borderRadius: 5,
   },
-  saveButtonText: {
+  colorPalette: {
+    position: 'absolute',
+    top: 20,
+    left: 10,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+  },
+  colorButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginBottom: 10,
+  },
+  brushSizeContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  brushSizeText: {
+    fontSize: 16,
+  },
+  sizeButton: {
+    backgroundColor: '#007BFF',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  sizeButtonText: {
+    color: 'white',
+    fontSize: 14,
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  actionButton: {
+    backgroundColor: '#007BFF',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+    marginRight: 10,
+  },
+  actionButtonText: {
     color: 'white',
     fontSize: 18,
-  },
-  savedImage: {
-    marginTop: 20,
-    width: 500,
-    height: 500,
   },
 });
