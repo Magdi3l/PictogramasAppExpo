@@ -1,6 +1,7 @@
+import AmongUsCharacter from '@/components/pinteres';
+import Landscape from '@/components/pinteres';
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, PanResponder } from 'react-native';
-import Canvas from 'react-native-canvas';
 
 export default function PaintScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null); // URI de la imagen seleccionada
@@ -105,8 +106,6 @@ export default function PaintScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Paint App</Text>
-
       {/* Lista de imágenes para seleccionar */}
       <View style={styles.imageList}>
         {images.map((image, index) => (
@@ -117,23 +116,7 @@ export default function PaintScreen() {
       </View>
 
       <View style={styles.content}>
-        {imageUri && (
-          <View style={styles.imageContainer}>
-            <Image source={imageUri} style={styles.image} />
-          </View>
-        )}
-
-        {/* Lienzo donde el usuario puede pintar */}
-        <View
-          {...panResponder.panHandlers}
-          style={styles.canvasWrapper}
-        >
-          <Canvas
-            ref={canvasRef}
-            style={styles.canvas}
-            onCanvasReady={handleCanvas}
-          />
-        </View>
+        <AmongUsCharacter />
       </View>
 
       {/* Contenedor de colores */}
@@ -175,19 +158,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     padding: 10,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    width: '100%',
-  },
   content: {
+    position:'relative',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    marginRight: 20,
+    top: 50,
   },
   imageContainer: {
     position: 'relative',
@@ -217,16 +193,17 @@ const styles = StyleSheet.create({
   },
   imageList: {
     flexDirection: 'row',
-    marginBottom: 20,
+    justifyContent: 'center',
+    marginVertical: 'auto'
   },
   thumbnail: {
-    width: 50,
-    height: 50,
+    width: 75,
+    height: '35%',
     marginRight: 10,
     borderRadius: 5,
   },
   colorPalette: {
-    position: 'absolute',
+    position: 'relative',
     top: 20,
     left: 10,
     flexDirection: 'column',
