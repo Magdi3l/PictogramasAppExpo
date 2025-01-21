@@ -25,6 +25,12 @@ const soundMap: { [key: string]: any } = {
   sound13: require('../../assets/sounds/pintar.mp3'),
   sound14: require('../../assets/sounds/musica.mp3'),
   sound15: require('../../assets/sounds/abrazo.mp3'),
+  sound16: require('../../assets/sounds/yo-quiero-participar.mp3'),
+  sound17: require('../../assets/sounds/dulce.mp3'),
+  sound18: require('../../assets/sounds/cumpleaños.mp3'),
+  sound19: require('../../assets/sounds/felicidades.mp3'),
+  sound20: require('../../assets/sounds/cinturon.mp3'),
+  sound21: require('../../assets/sounds/no-me-gusta.mp3'),
 };
 
 const imagesDirectory = FileSystem.documentDirectory + 'images/';
@@ -93,8 +99,14 @@ const App = () => {
       { name: 'Dolor', image: require('../../assets/images/dolor.png'), sound: 'sound11', category:'Emociones' },
       { name: 'Jugar', image: require('../../assets/images/jugar.png'), sound: 'sound12', category:'Accion' },
       { name: 'Pintar', image: require('../../assets/images/pintar.png'), sound: 'sound13', category:'Accion'},
-      { name: 'Música', image: require('../../assets/images/musica.png'), sound: 'sound14',category:'Accion'},
-      { name: 'Abrazo', image: require('../../assets/images/abrazo.png'), sound: 'sound15', category:'Accion'},
+      { name: 'Musica', image: require('../../assets/images/musica.png'), sound: 'sound14', category:'Respuestas Rapidas'},
+      { name: 'Abrazo', image: require('../../assets/images/abrazo.png'), sound: 'sound15', category:'Respuestas Rapidas'},
+      { name: 'Participar', image: require('../../assets/images/yo-quiero-participar.png'), sound: 'sound16', category:'Accion'},
+      { name: 'Dulce', image: require('../../assets/images/dulce.png'), sound: 'sound17', category:'Accion'},
+      { name: 'Feliz Cumpleaños', image: require('../../assets/images/cumpleaños.png'), sound: 'sound18', category:'Respuestas Rapidas'},
+      { name: 'Felicitaciones', image: require('../../assets/images/felicidades.png'), sound: 'sound19', category:'Respuestas Rapidas'},
+      { name: 'Mi cinturon', image: require('../../assets/images/cinturon.png'), sound: 'sound20', category:'Respuestas Rapidas'},
+      { name: 'No me gusta', image: require('../../assets/images/no-me-gusta.png'), sound: 'sound21', category:'Respuestas Rapidas'},
     ];
     setAllPictograms(defaultPictograms);
   };
@@ -318,7 +330,7 @@ const styles = StyleSheet.create({
   },
   pictogramText: {
     marginTop: 5,
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
     color: '#000',
     textAlign: 'center',
