@@ -18,6 +18,10 @@
       "bundleIdentifier": "com.anonymous.PictogramasAppExpo"
     },
     "android": {
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "INTERNET"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -34,6 +38,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d165b706-0bac-43af-9f1f-ece0ac63a19e"
+      }
     }
   }
 }
