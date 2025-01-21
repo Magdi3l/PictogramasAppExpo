@@ -27,10 +27,10 @@ const soundMap: { [key: string]: any } = {
   sound15: require('../../assets/sounds/abrazo.mp3'),
   sound16: require('../../assets/sounds/yo-quiero-participar.mp3'),
   sound17: require('../../assets/sounds/dulce.mp3'),
-  sound18: require('../../assets/sounds/cumpleaños.mp3'),
+  sound18: require('../../assets/sounds/cumpleaos.mp3'),
   sound19: require('../../assets/sounds/felicidades.mp3'),
   sound20: require('../../assets/sounds/cinturon.mp3'),
-  sound21: require('../../assets/sounds/no-me-gusta.mp3'),
+  sound21: require('../../assets/sounds/nomegusta.mp3'),
 };
 
 const imagesDirectory = FileSystem.documentDirectory + 'images/';
@@ -90,7 +90,7 @@ const App = () => {
       { name: 'No', image: require('../../assets/images/no.jpg'), sound: 'sound2',category:'Respuestas Rapidas' },
       { name: 'Comer', image: require('../../assets/images/comer.jpg'), sound: 'sound3', category:'Acciones'},
       { name: 'Papá', image: require('../../assets/images/papa.jpg'), sound: 'sound4', category:'Respuestas Rapidas'},
-      { name: 'Mamá', image: require('../../assets/images/mama1.jpg'), sound: 'sound5', category:'Respuestas Rapidas' },
+      { name: 'Mamá', image: require('../../assets/images/mama.jpg'), sound: 'sound5', category:'Respuestas Rapidas' },
       { name: 'Saludar', image: require('../../assets/images/saludar.jpg'), sound: 'sound6', category:'Acciones' },
       { name: 'Feliz', image: require('../../assets/images/feliz.png'), sound: 'sound7', category:'Emociones' },
       { name: 'Triste', image: require('../../assets/images/triste.png'), sound: 'sound8',category:'Emociones' },
@@ -103,10 +103,10 @@ const App = () => {
       { name: 'Abrazo', image: require('../../assets/images/abrazo.png'), sound: 'sound15', category:'Respuestas Rapidas'},
       { name: 'Participar', image: require('../../assets/images/yo-quiero-participar.png'), sound: 'sound16', category:'Accion'},
       { name: 'Dulce', image: require('../../assets/images/dulce.png'), sound: 'sound17', category:'Accion'},
-      { name: 'Feliz Cumpleaños', image: require('../../assets/images/cumpleaños.png'), sound: 'sound18', category:'Respuestas Rapidas'},
+      { name: 'Feliz Cumpleaños', image: require('../../assets/images/cumpleaos.png'), sound: 'sound18', category:'Respuestas Rapidas'},
       { name: 'Felicitaciones', image: require('../../assets/images/felicidades.png'), sound: 'sound19', category:'Respuestas Rapidas'},
       { name: 'Mi cinturon', image: require('../../assets/images/cinturon.png'), sound: 'sound20', category:'Respuestas Rapidas'},
-      { name: 'No me gusta', image: require('../../assets/images/no-me-gusta.png'), sound: 'sound21', category:'Respuestas Rapidas'},
+      { name: 'No me gusta', image: require('../../assets/images/nomegusta.png'), sound: 'sound21', category:'Respuestas Rapidas'},
     ];
     setAllPictograms(defaultPictograms);
   };

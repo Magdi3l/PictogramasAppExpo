@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "PictogramasAppExpo",
-    "slug": "PictogramasAppExpo",
+    "slug": "pictogramasexpo",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -44,8 +44,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "d165b706-0bac-43af-9f1f-ece0ac63a19e"
+        "projectId": "8e462cd7-aa6d-4177-8842-961235537f33"
       }
-    }
+    },
+    "owner": "magd13l"
   }
 }
