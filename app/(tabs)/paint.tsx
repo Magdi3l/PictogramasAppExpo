@@ -22,7 +22,7 @@ const PaintScreen = () => {
   const CANVAS_WIDTH = width - 40;
 
   const [color, setColor] = useState('#000000'); 
-  const [brushSize] = useState(8);  // Tamaño de pincel fijo en 8
+  const [brushSize] = useState(8);
   const [paths, setPaths] = useState<PathData[]>([]); 
   const [currentPath, setCurrentPath] = useState<PathData | null>(null); 
   const [canvasRef, setCanvasRef] = useState<any>(null); 
@@ -94,7 +94,6 @@ const PaintScreen = () => {
       </Svg>
 
       <View style={styles.colorPalette}>
-        {/* 14 colores (10 básicos + 4 adicionales) */}
         {[
           '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', 
           '#FF00FF', '#00FFFF', '#FFFFFF', '#808080', '#A52A2A',
@@ -111,7 +110,7 @@ const PaintScreen = () => {
       <TouchableOpacity
         style={styles.actionButton}
         onPress={() => {
-          setPaths([]); // Limpia el lienzo
+          setPaths([]);
           setCurrentPath(null);
         }}
       >
