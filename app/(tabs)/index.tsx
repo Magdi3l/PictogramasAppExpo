@@ -284,8 +284,7 @@ const styles = StyleSheet.create({
   categoryContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginVertical: 20,
-    
+    marginBottom:35,
   },
   categoryButton: {
     justifyContent: 'center',
@@ -295,7 +294,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10, 
     borderRadius: 20,
     marginHorizontal: 5,
-    height: 50,
+    marginVertical:5,
+    height: 125,
   },
   categoryButtonSelected: {
     backgroundColor: '#4a90e2',
