@@ -58,6 +58,66 @@ const PaintScreen = () => {
   ];
 
   const toggleLeftPanel = () => {
+    // If right panel is open, close it first
+    if (isRightPanelVisible) {
+      Animated.spring(rightPanelAnim, {
+        toValue: -PANEL_WIDTH,
+        useNativeDriver: false,
+        friction: 8,
+      }).start(() => {
+        setIsRightPanelVisible(false);
+        // Then open left panel
+        const toValue = isLeftPanelVisible ? -PANEL_WIDTH : 0;
+        Animated.spring(leftPanelAnim, {
+          toValue,
+          useNativeDriver: false,
+          friction: 8,
+        }).start();
+        setIsLeftPanelVisible(!isLeftPanelVisible);
+      });
+    } else {
+      // If right panel is closed, just toggle left panel
+      const toValue = isLeftPanelVisible ? -PANEL_WIDTH : 0;
+      Animated.spring(leftPanelAnim, {
+        toValue,
+        useNativeDriver: false,
+        friction: 8,
+      }).start();
+      setIsLeftPanelVisible(!isLeftPanelVisible);
+    }
+  };
+
+  const toggleRightPanel = () => {
+    // If left panel is open, close it first
+    if (isLeftPanelVisible) {
+      Animated.spring(leftPanelAnim, {
+        toValue: -PANEL_WIDTH,
+        useNativeDriver: false,
+        friction: 8,
+      }).start(() => {
+        setIsLeftPanelVisible(false);
+        // Then open right panel
+        const toValue = isRightPanelVisible ? -PANEL_WIDTH : 0;
+        Animated.spring(rightPanelAnim, {
+          toValue,
+          useNativeDriver: false,
+          friction: 8,
+        }).start();
+        setIsRightPanelVisible(!isRightPanelVisible);
+      });
+    } else {
+      // If left panel is closed, just toggle right panel
+      const toValue = isRightPanelVisible ? -PANEL_WIDTH : 0;
+      Animated.spring(rightPanelAnim, {
+        toValue,
+        useNativeDriver: false,
+        friction: 8,
+      }).start();
+      setIsRightPanelVisible(!isRightPanelVisible);
+    }
+  };
+
+/*   const toggleLeftPanel = () => {
     const toValue = isLeftPanelVisible ? -PANEL_WIDTH : 0;
     Animated.spring(leftPanelAnim, {
       toValue,
@@ -75,7 +135,7 @@ const PaintScreen = () => {
       friction: 8,
     }).start();
     setIsRightPanelVisible(!isRightPanelVisible);
-  };
+  }; */
 
   const createBrushStroke = (x: number, y: number, type: 'start' | 'active') => {
     switch (brushType) {
